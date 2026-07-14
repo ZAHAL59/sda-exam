@@ -1,0 +1,2826 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SDA Exam Platform</title>
+  <meta name="description"
+    content="AI-powered descriptive exam platform. Upload question papers, generate rubrics, and evaluate student answers with Gemini AI.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=Syne:wght@600;700;800&display=swap"
+    rel="stylesheet">
+  <style>
+    /* ── Reset & Tokens ───────────────────────────────── */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0
+    }
+
+    :root {
+      --bg: #f0f2f7;
+      --surface: #ffffff;
+      --surface2: #f8fafc;
+      --border: #e5e7eb;
+      --border-soft: #f0f0f0;
+      --text: #0f172a;
+      --text-mid: #64748b;
+      --text-faint: #94a3b8;
+      --accent: #0ecb8f;
+      --accent-dark: #0aaa78;
+      --accent-bg: #e8fdf5;
+      --accent-border: #b6f0d8;
+      --accent-glow: rgba(14, 203, 143, .18);
+      --danger: #ef4444;
+      --danger-bg: #fef2f2;
+      --warn: #f59e0b;
+      --warn-bg: #fffbeb;
+      --info: #3b82f6;
+      --info-bg: #eff6ff;
+      --purple: #7c6ff7;
+      --purple-bg: #f0f0ff;
+      --font-head: 'Syne', sans-serif;
+      --font-body: 'DM Sans', sans-serif;
+      --radius: 14px;
+      --radius-sm: 10px;
+      --radius-xs: 7px;
+      --shadow: 0 1px 3px rgba(0, 0, 0, .06), 0 4px 16px rgba(0, 0, 0, .04);
+      --shadow-lg: 0 8px 32px rgba(0, 0, 0, .10);
+      --shadow-card: 0 2px 8px rgba(0, 0, 0, .06);
+    }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 14px;
+      line-height: 1.55;
+      min-height: 100vh
+    }
+
+    /* ── App Shell ─────────── */
+    .app {
+      display: flex;
+      width: 100%;
+      min-height: 100vh;
+      background: var(--bg)
+    }
+
+    /* ── Sidebar ─────────── */
+    .sidebar {
+      width: 220px;
+      min-width: 220px;
+      background: #0f172a;
+      display: flex;
+      flex-direction: column;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      border-right: 1px solid rgba(255, 255, 255, .06)
+    }
+
+    .sb-logo {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      padding: 20px 18px 18px;
+      border-bottom: 1px solid rgba(255, 255, 255, .06)
+    }
+
+    .sb-logomark {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, var(--accent) 0%, #07b47a 100%);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 10px rgba(14, 203, 143, .4)
+    }
+
+    .sb-logomark svg {
+      width: 18px;
+      height: 18px;
+      stroke: #fff;
+      fill: none;
+      stroke-width: 2.5;
+      stroke-linecap: round
+    }
+
+    .sb-logotext {
+      font-family: var(--font-head);
+      font-size: 17px;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: -.3px
+    }
+
+    .sb-nav {
+      padding: 12px 10px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      overflow-y: auto
+    }
+
+    .sb-section {
+      font-size: 10px;
+      font-weight: 600;
+      color: rgba(255, 255, 255, .25);
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      padding: 12px 10px 4px;
+      font-family: var(--font-head)
+    }
+
+    .sb-item {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      padding: 9px 11px;
+      border-radius: 9px;
+      font-size: 13px;
+      color: rgba(255, 255, 255, .55);
+      cursor: pointer;
+      transition: all .14s;
+      border: 1px solid transparent
+    }
+
+    .sb-item svg {
+      width: 16px;
+      height: 16px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      flex-shrink: 0
+    }
+
+    .sb-item:hover {
+      background: rgba(255, 255, 255, .07);
+      color: rgba(255, 255, 255, .85)
+    }
+
+    .sb-item.active {
+      background: rgba(14, 203, 143, .15);
+      color: var(--accent);
+      border-color: rgba(14, 203, 143, .25)
+    }
+
+    .sb-item.active svg {
+      stroke: var(--accent)
+    }
+
+    .sb-bottom {
+      padding: 10px;
+      border-top: 1px solid rgba(255, 255, 255, .06)
+    }
+
+    /* ── Main ─────────────── */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      overflow: hidden
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 26px;
+      background: rgba(255, 255, 255, .85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 10
+    }
+
+    .topbar-left {
+      font-size: 12.5px;
+      color: var(--text-faint);
+      font-weight: 500
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 8px
+    }
+
+    .top-btn {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 7px 14px;
+      border-radius: 100px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      font-family: var(--font-body);
+      transition: all .15s
+    }
+
+    .top-btn svg {
+      width: 12px;
+      height: 12px
+    }
+
+    .btn-sai {
+      background: linear-gradient(135deg, #0ecb8f, #07b47a);
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(14, 203, 143, .3)
+    }
+
+    .btn-sai:hover {
+      box-shadow: 0 4px 14px rgba(14, 203, 143, .45);
+      transform: translateY(-1px)
+    }
+
+    .btn-srch {
+      background: linear-gradient(135deg, #7c6ff7, #6051d9);
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(124, 111, 247, .3)
+    }
+
+    .btn-srch:hover {
+      box-shadow: 0 4px 14px rgba(124, 111, 247, .45);
+      transform: translateY(-1px)
+    }
+
+    .avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: #fff;
+      font-family: var(--font-head);
+      box-shadow: var(--shadow-card)
+    }
+
+    .page {
+      flex: 1;
+      overflow-y: auto;
+      padding: 26px;
+      display: flex;
+      flex-direction: column;
+      gap: 0
+    }
+
+    .screen {
+      display: none
+    }
+
+    .screen.active {
+      display: block
+    }
+
+    /* ── Role toggle ───────── */
+    .role-bar {
+      display: flex;
+      background: #e9ecf0;
+      border-radius: 12px;
+      padding: 4px;
+      margin-bottom: 20px;
+      gap: 4px
+    }
+
+    .role-btn {
+      flex: 1;
+      padding: 9px 12px;
+      border: none;
+      border-radius: 9px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      background: transparent;
+      color: #64748b;
+      transition: all .18s;
+      font-family: var(--font-body);
+      letter-spacing: -.1px
+    }
+
+    .role-btn.on {
+      background: #fff;
+      color: var(--accent-dark);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, .08);
+      font-weight: 600
+    }
+
+    /* ── Badges ─────────────── */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      border-radius: 100px;
+      padding: 4px 12px;
+      font-size: 11px;
+      font-weight: 600;
+      margin-bottom: 14px
+    }
+
+    .badge.warn {
+      background: var(--warn-bg);
+      border: 1px solid #fde68a;
+      color: #b45309
+    }
+
+    .badge.warn svg {
+      width: 11px;
+      height: 11px;
+      stroke: #b45309;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round
+    }
+
+    .badge.ai {
+      background: #f0f0ff;
+      border: 1px solid #c4b5fd;
+      color: #5b21b6;
+      margin-left: 6px
+    }
+
+    .badge.ai svg {
+      width: 11px;
+      height: 11px;
+      stroke: #5b21b6;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round
+    }
+
+    /* ── Steps ─────────────── */
+    .steps {
+      display: flex;
+      align-items: center;
+      margin-bottom: 22px
+    }
+
+    .stp {
+      display: flex;
+      align-items: center;
+      gap: 7px
+    }
+
+    .stp-n {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      font-size: 10px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-family: var(--font-head)
+    }
+
+    .stp-l {
+      font-size: 12px
+    }
+
+    .stp-line {
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+      margin: 0 8px
+    }
+
+    .stp.done .stp-n {
+      background: var(--accent-bg);
+      color: var(--accent-dark)
+    }
+
+    .stp.on .stp-n {
+      background: var(--accent);
+      color: #fff;
+      box-shadow: 0 0 0 3px var(--accent-glow)
+    }
+
+    .stp.off .stp-n {
+      background: #f1f5f9;
+      color: #cbd5e1
+    }
+
+    .stp.done .stp-l,
+    .stp.on .stp-l {
+      color: var(--text);
+      font-weight: 600
+    }
+
+    .stp.off .stp-l {
+      color: #cbd5e1
+    }
+
+    /* ── Upload zone ─────────── */
+    .upz-pair {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 14px
+    }
+
+    @media(max-width:640px) {
+      .upz-pair {
+        grid-template-columns: 1fr
+      }
+    }
+
+    .upz-label {
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--text-mid);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px
+    }
+
+    .upz-label .req {
+      color: var(--danger);
+      font-size: 11px
+    }
+
+    .upz-label .opt {
+      color: var(--accent-dark);
+      font-size: 10px;
+      font-weight: 600;
+      background: var(--accent-bg);
+      padding: 1px 7px;
+      border-radius: 100px
+    }
+
+    .upz {
+      border: 1.5px dashed #d1d5db;
+      border-radius: var(--radius);
+      padding: 20px 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: all .18s;
+      background: #fafafa
+    }
+
+    .upz:hover,
+    .upz.drag {
+      border-color: var(--accent);
+      background: #f8fffc;
+      box-shadow: 0 0 0 3px var(--accent-glow)
+    }
+
+    .upz.has-file {
+      border-style: solid;
+      border-color: var(--accent-border);
+      background: var(--accent-bg)
+    }
+
+    .upz.model-upz:hover,
+    .upz.model-upz.drag {
+      border-color: var(--purple);
+      background: var(--purple-bg);
+      box-shadow: 0 0 0 3px rgba(124, 111, 247, .12)
+    }
+
+    .upz.model-upz.has-file {
+      border-color: #c4b5fd;
+      background: var(--purple-bg)
+    }
+
+    .upz-ico {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 8px
+    }
+
+    .upz-ico svg {
+      width: 17px;
+      height: 17px;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round
+    }
+
+    .upz-main {
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 2px
+    }
+
+    .upz-hint {
+      font-size: 11px;
+      color: var(--text-faint)
+    }
+
+    .upz-fname {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--accent-dark);
+      margin-top: 4px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap
+    }
+
+    .upz-fname.purple {
+      color: var(--purple)
+    }
+
+    .upz-clear {
+      display: inline-block;
+      margin-top: 5px;
+      font-size: 11px;
+      color: var(--text-faint);
+      cursor: pointer;
+      padding: 2px 8px;
+      border-radius: 100px;
+      border: 1px solid var(--border);
+      background: #fff
+    }
+
+    .upz-clear:hover {
+      color: var(--danger);
+      border-color: #fca5a5
+    }
+
+    /* ── Model selector (teacher) ── */
+    .model-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: linear-gradient(135deg, #eff6ff, #f0f9ff);
+      border: 1px solid #bfdbfe;
+      border-radius: var(--radius-sm);
+      padding: 11px 15px;
+      margin-bottom: 20px
+    }
+
+    .model-bar-label {
+      font-size: 11.5px;
+      font-weight: 600;
+      color: #1e40af;
+      white-space: nowrap
+    }
+
+    .model-bar select {
+      flex: 1;
+      border: 1px solid #bfdbfe;
+      border-radius: 7px;
+      padding: 7px 10px;
+      font-size: 12.5px;
+      font-family: var(--font-body);
+      color: var(--text);
+      background: #fff;
+      outline: none;
+      cursor: pointer
+    }
+
+    .model-bar select:focus {
+      border-color: var(--info);
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, .12)
+    }
+
+    .model-note {
+      font-size: 11px;
+      color: #1e40af;
+      opacity: .75;
+      margin-left: 2px
+    }
+
+    /* ── Buttons ─────────────── */
+    .btn-go {
+      width: 100%;
+      padding: 12px;
+      border-radius: var(--radius-sm);
+      background: linear-gradient(135deg, var(--accent), #07b47a);
+      color: #fff;
+      border: none;
+      font-size: 13.5px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      transition: all .18s;
+      font-family: var(--font-body);
+      box-shadow: 0 3px 12px rgba(14, 203, 143, .25)
+    }
+
+    .btn-go:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(14, 203, 143, .35)
+    }
+
+    .btn-go:disabled {
+      opacity: .4;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none
+    }
+
+    .btn-sec {
+      width: 100%;
+      padding: 10px;
+      border-radius: var(--radius-sm);
+      background: var(--surface);
+      color: var(--text-mid);
+      border: 1px solid var(--border);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      margin-top: 8px;
+      font-family: var(--font-body);
+      transition: all .15s
+    }
+
+    .btn-sec:hover {
+      background: #f8fafc;
+      color: var(--text)
+    }
+
+    /* ── Info boxes ──────────── */
+    .ibox {
+      background: var(--info-bg);
+      border: 1px solid #bfdbfe;
+      border-radius: var(--radius-sm);
+      padding: 11px 14px;
+      font-size: 12px;
+      color: #1e40af;
+      margin-bottom: 16px;
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+      line-height: 1.55
+    }
+
+    .ibox svg {
+      width: 13px;
+      height: 13px;
+      stroke: #1e40af;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      flex-shrink: 0;
+      margin-top: 1px
+    }
+
+    .boost-box {
+      background: linear-gradient(135deg, #f0f0ff, #fdf2f8);
+      border: 1px solid #c4b5fd;
+      border-radius: var(--radius-sm);
+      padding: 11px 14px;
+      font-size: 12px;
+      color: #5b21b6;
+      margin-bottom: 16px;
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+      line-height: 1.55
+    }
+
+    .boost-box svg {
+      width: 13px;
+      height: 13px;
+      stroke: #5b21b6;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      flex-shrink: 0;
+      margin-top: 1px
+    }
+
+    .err-box {
+      background: var(--danger-bg);
+      border: 1px solid #fca5a5;
+      border-radius: var(--radius-sm);
+      padding: 11px 14px;
+      font-size: 12.5px;
+      color: #b91c1c;
+      margin-bottom: 14px;
+      display: none;
+      line-height: 1.5
+    }
+
+    /* ── Rubric cards ─────────── */
+    .rub-card {
+      background: #fff;
+      border: 1px solid var(--accent-border);
+      border-radius: var(--radius);
+      margin-bottom: 14px;
+      overflow: hidden;
+      transition: box-shadow .18s, border-color .18s
+    }
+
+    .rub-card:focus-within {
+      box-shadow: 0 0 0 2px var(--accent), var(--shadow-card)
+    }
+
+    .rub-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px 11px;
+      border-bottom: 1px solid var(--accent-border);
+      background: linear-gradient(90deg, #f0fdf8, #f8fffc)
+    }
+
+    .rub-qid {
+      font-size: 10px;
+      font-weight: 800;
+      color: var(--accent-dark);
+      text-transform: uppercase;
+      letter-spacing: .6px;
+      font-family: var(--font-head)
+    }
+
+    .rub-subject {
+      font-size: 11px;
+      color: var(--text-mid);
+      margin-left: 7px
+    }
+
+    .marks-stepper {
+      display: flex;
+      align-items: center;
+      background: #fff;
+      border: 1px solid var(--accent-border);
+      border-radius: 100px;
+      overflow: hidden
+    }
+
+    .marks-stepper button {
+      width: 27px;
+      height: 27px;
+      border: none;
+      background: transparent;
+      color: var(--accent-dark);
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background .12s;
+      flex-shrink: 0;
+      font-family: var(--font-body)
+    }
+
+    .marks-stepper button:hover {
+      background: var(--accent-bg)
+    }
+
+    .marks-val {
+      min-width: 36px;
+      text-align: center;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--accent-dark);
+      font-family: var(--font-head);
+      border-left: 1px solid var(--accent-border);
+      border-right: 1px solid var(--accent-border);
+      line-height: 27px
+    }
+
+    .marks-label {
+      font-size: 11px;
+      color: var(--text-mid);
+      margin-left: 7px;
+      white-space: nowrap
+    }
+
+    .rub-card-body {
+      padding: 14px 16px 16px
+    }
+
+    .rub-qtxt {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 13px;
+      line-height: 1.45
+    }
+
+    .rub-field {
+      margin-bottom: 11px
+    }
+
+    .rub-field-lbl {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--accent-dark);
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      font-family: var(--font-head);
+      margin-bottom: 5px;
+      display: flex;
+      align-items: center;
+      gap: 5px
+    }
+
+    .rub-field-lbl .edit-hint {
+      font-size: 10px;
+      font-weight: 400;
+      color: var(--text-faint);
+      text-transform: none;
+      letter-spacing: 0;
+      font-family: var(--font-body)
+    }
+
+    .rub-textarea {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xs);
+      padding: 9px 11px;
+      font-size: 12px;
+      font-family: var(--font-body);
+      color: var(--text);
+      background: #fafafa;
+      outline: none;
+      resize: vertical;
+      line-height: 1.6;
+      min-height: 56px;
+      transition: all .15s
+    }
+
+    .rub-textarea:focus {
+      border-color: var(--accent);
+      background: #fff;
+      box-shadow: 0 0 0 2px var(--accent-glow)
+    }
+
+    .kw-editor {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      align-items: center;
+      background: #fafafa;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xs);
+      padding: 7px 9px;
+      min-height: 38px;
+      cursor: text;
+      transition: all .15s
+    }
+
+    .kw-editor:focus-within {
+      border-color: var(--accent);
+      background: #fff;
+      box-shadow: 0 0 0 2px var(--accent-glow)
+    }
+
+    .kw-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: var(--accent-bg);
+      color: #065f46;
+      font-size: 11px;
+      font-weight: 500;
+      padding: 3px 9px 3px 10px;
+      border-radius: 100px
+    }
+
+    .kw-chip-x {
+      cursor: pointer;
+      color: #0aaa78;
+      font-size: 13px;
+      line-height: 1;
+      width: 15px;
+      height: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      flex-shrink: 0;
+      transition: background .1s
+    }
+
+    .kw-chip-x:hover {
+      background: var(--accent-border)
+    }
+
+    .kw-input {
+      border: none;
+      outline: none;
+      font-size: 11.5px;
+      font-family: var(--font-body);
+      color: var(--text);
+      background: transparent;
+      min-width: 80px;
+      flex: 1;
+      padding: 1px 2px
+    }
+
+    .kw-input::placeholder {
+      color: #c4c9d1
+    }
+
+    .rub-model-hint {
+      background: linear-gradient(90deg, #f0f0ff, #fdf2f8);
+      border: 1px solid #c4b5fd;
+      border-radius: var(--radius-xs);
+      padding: 8px 11px;
+      font-size: 11.5px;
+      color: #5b21b6;
+      line-height: 1.55;
+      margin-bottom: 11px;
+      display: flex;
+      gap: 7px;
+      align-items: flex-start
+    }
+
+    .rub-model-hint svg {
+      width: 12px;
+      height: 12px;
+      stroke: #5b21b6;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      flex-shrink: 0;
+      margin-top: 1px
+    }
+
+    .rub-card.changed .rub-card-header {
+      background: linear-gradient(90deg, #fffbeb, #fffef5)
+    }
+
+    .rub-card.changed {
+      border-color: #fde68a
+    }
+
+    .changed-badge {
+      display: none;
+      font-size: 10px;
+      font-weight: 600;
+      color: #b45309;
+      background: #fef3c7;
+      padding: 2px 9px;
+      border-radius: 100px
+    }
+
+    .rub-card.changed .changed-badge {
+      display: inline-block
+    }
+
+    .rubric-action-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      margin-bottom: 16px
+    }
+
+    .rab-left {
+      font-size: 12px;
+      color: #92400e
+    }
+
+    .rab-left strong {
+      color: #78350f
+    }
+
+    .rab-right {
+      display: flex;
+      gap: 8px
+    }
+
+    .rab-btn {
+      padding: 6px 13px;
+      border-radius: 7px;
+      font-size: 11.5px;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      font-family: var(--font-body)
+    }
+
+    .rab-reset {
+      background: #fff;
+      color: #92400e;
+      border: 1px solid #fde68a
+    }
+
+    .rab-reset:hover {
+      background: #fffbeb
+    }
+
+    /* ── OK banner ────────────── */
+    .ok-banner {
+      background: linear-gradient(90deg, #d1fae5, #f0fdf4);
+      border: 1px solid #6ee7b7;
+      border-radius: var(--radius);
+      padding: 13px 16px;
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      margin-bottom: 16px
+    }
+
+    .ok-banner svg {
+      width: 17px;
+      height: 17px;
+      stroke: #065f46;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      flex-shrink: 0
+    }
+
+    .ok-banner-txt {
+      font-size: 13px;
+      font-weight: 600;
+      color: #065f46
+    }
+
+    /* ── Loading ─────────────── */
+    .load-wrap {
+      text-align: center;
+      padding: 60px 20px
+    }
+
+    .load-ring {
+      width: 52px;
+      height: 52px;
+      margin: 0 auto 18px;
+      position: relative
+    }
+
+    .load-ring::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      border: 3px solid var(--accent-bg)
+    }
+
+    .load-ring::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      border: 3px solid transparent;
+      border-top-color: var(--accent);
+      animation: sp .75s linear infinite
+    }
+
+    @keyframes sp {
+      to {
+        transform: rotate(360deg)
+      }
+    }
+
+    .load-t {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 6px;
+      font-family: var(--font-head)
+    }
+
+    .load-s {
+      font-size: 12.5px;
+      color: var(--text-faint)
+    }
+
+    .load-pulse {
+      display: flex;
+      justify-content: center;
+      gap: 5px;
+      margin-top: 18px
+    }
+
+    .load-pulse span {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent-border);
+      animation: pulse 1.4s ease-in-out infinite both
+    }
+
+    .load-pulse span:nth-child(2) {
+      animation-delay: .2s
+    }
+
+    .load-pulse span:nth-child(3) {
+      animation-delay: .4s
+    }
+
+    @keyframes pulse {
+
+      0%,
+      80%,
+      100% {
+        transform: scale(.8);
+        opacity: .5
+      }
+
+      40% {
+        transform: scale(1.1);
+        opacity: 1
+      }
+    }
+
+    /* ── Home cards ──────────── */
+    .page-h {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 3px;
+      font-family: var(--font-head);
+      letter-spacing: -.4px
+    }
+
+    .page-sub {
+      font-size: 13px;
+      color: var(--text-mid);
+      margin-bottom: 20px
+    }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 13px;
+      margin-bottom: 22px
+    }
+
+    .ec {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px;
+      cursor: pointer;
+      transition: all .18s;
+      position: relative;
+      overflow: hidden
+    }
+
+    .ec::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      transition: opacity .18s;
+      background: linear-gradient(135deg, var(--accent-glow), transparent)
+    }
+
+    .ec:hover,
+    .ec.hi {
+      border-color: var(--accent);
+      background: #fafffe;
+      box-shadow: 0 4px 20px rgba(14, 203, 143, .1)
+    }
+
+    .ec:hover::before,
+    .ec.hi::before {
+      opacity: 1
+    }
+
+    .ec-ico {
+      width: 40px;
+      height: 40px;
+      border-radius: 11px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 11px
+    }
+
+    .ec-ico svg {
+      width: 20px;
+      height: 20px;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill: none
+    }
+
+    .ec-name {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 2px;
+      font-family: var(--font-head)
+    }
+
+    .ec-desc {
+      font-size: 11.5px;
+      color: var(--text-faint)
+    }
+
+    .new-pill {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 700;
+      background: linear-gradient(90deg, var(--accent-bg), #d1fae5);
+      color: var(--accent-dark);
+      padding: 2px 9px;
+      border-radius: 100px;
+      margin-top: 6px;
+      border: 1px solid var(--accent-border)
+    }
+
+    /* ── Breadcrumb ─────────── */
+    .bc {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      margin-bottom: 16px;
+      color: #cbd5e1
+    }
+
+    .bc svg {
+      width: 10px;
+      height: 10px;
+      stroke: #d1d5db;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round
+    }
+
+    .bc .cur {
+      color: var(--accent-dark);
+      font-weight: 600
+    }
+
+    .bc span[onclick] {
+      cursor: pointer
+    }
+
+    .bc span[onclick]:hover {
+      color: var(--text)
+    }
+
+    /* ── Exam header ─────────── */
+    .exam-hdr {
+      margin-bottom: 16px
+    }
+
+    .exam-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 6px;
+      font-family: var(--font-head)
+    }
+
+    .etag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 4px
+    }
+
+    .etag {
+      font-size: 11.5px;
+      color: var(--text-mid);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: var(--bg);
+      padding: 3px 9px;
+      border-radius: 100px
+    }
+
+    .etag svg {
+      width: 11px;
+      height: 11px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round
+    }
+
+    /* ── Published exam list ─── */
+    .pub-exam-card {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      margin-bottom: 13px;
+      cursor: pointer;
+      transition: all .18s;
+      display: flex;
+      justify-content: space-between;
+      align-items: center
+    }
+
+    .pub-exam-card:hover {
+      border-color: var(--accent);
+      background: #fafffe;
+      box-shadow: 0 4px 16px rgba(14, 203, 143, .09)
+    }
+
+    .pec-name {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 3px;
+      font-family: var(--font-head)
+    }
+
+    .pec-meta {
+      font-size: 12px;
+      color: var(--text-faint)
+    }
+
+    .pec-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 5px
+    }
+
+    .pec-badge {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 11px;
+      border-radius: 100px
+    }
+
+    .pec-badge.live {
+      background: #d1fae5;
+      color: #065f46
+    }
+
+    .pec-badge.model-ans {
+      background: #f0f0ff;
+      color: #5b21b6
+    }
+
+    .start-btn {
+      background: linear-gradient(135deg, var(--accent), #07b47a);
+      color: #fff;
+      border: none;
+      padding: 8px 18px;
+      border-radius: 100px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: var(--font-body);
+      box-shadow: 0 2px 8px rgba(14, 203, 143, .25);
+      transition: all .15s
+    }
+
+    .start-btn:hover {
+      box-shadow: 0 4px 14px rgba(14, 203, 143, .4);
+      transform: translateY(-1px)
+    }
+
+    .no-exams {
+      text-align: center;
+      padding: 50px 20px;
+      color: var(--text-faint)
+    }
+
+    .no-exams svg {
+      width: 44px;
+      height: 44px;
+      stroke: #d1d5db;
+      fill: none;
+      stroke-width: 1.5;
+      stroke-linecap: round;
+      margin: 0 auto 12px;
+      display: block
+    }
+
+    .no-exams p {
+      font-size: 14px
+    }
+
+    /* ── Student Q preview ───── */
+    .q-ans-area {
+      width: 100%;
+      min-height: 90px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 11px 13px;
+      font-size: 13px;
+      font-family: var(--font-body);
+      color: var(--text);
+      resize: vertical;
+      outline: none;
+      transition: all .15s;
+      line-height: 1.55;
+      background: #fafafa
+    }
+
+    .q-ans-area:focus {
+      border-color: var(--accent);
+      background: #fff;
+      box-shadow: 0 0 0 2px var(--accent-glow)
+    }
+
+    /* ── Results ─────────────── */
+    .sc-card {
+      background: linear-gradient(135deg, #0f172a, #1e293b);
+      border-radius: var(--radius);
+      padding: 24px;
+      text-align: center;
+      margin-bottom: 18px;
+      box-shadow: var(--shadow-lg)
+    }
+
+    .sc-label-top {
+      font-size: 11px;
+      color: rgba(255, 255, 255, .5);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      font-family: var(--font-head)
+    }
+
+    .sc-big {
+      font-size: 48px;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1;
+      font-family: var(--font-head);
+      letter-spacing: -1px
+    }
+
+    .sc-total {
+      font-size: 16px;
+      font-weight: 400;
+      color: rgba(255, 255, 255, .45)
+    }
+
+    .sc-pct {
+      font-size: 13px;
+      color: var(--accent);
+      margin-top: 4px;
+      font-weight: 600
+    }
+
+    .grade-pill {
+      display: inline-block;
+      padding: 5px 16px;
+      border-radius: 100px;
+      font-size: 12px;
+      font-weight: 700;
+      margin-top: 10px;
+      letter-spacing: .3px
+    }
+
+    .sc-improve {
+      margin-top: 16px;
+      text-align: left;
+      border-top: 1px solid rgba(255, 255, 255, .08);
+      padding-top: 14px
+    }
+
+    .sc-improve-h {
+      font-size: 10px;
+      font-weight: 700;
+      color: rgba(255, 255, 255, .35);
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      margin-bottom: 7px;
+      font-family: var(--font-head)
+    }
+
+    /* ── Per-question result ─── */
+    .res-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0;
+      margin-bottom: 12px;
+      overflow: hidden
+    }
+
+    .res-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface2)
+    }
+
+    .res-qid {
+      font-size: 10px;
+      font-weight: 800;
+      color: var(--accent-dark);
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      font-family: var(--font-head)
+    }
+
+    .res-qtxt {
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--text)
+    }
+
+    .res-marks-badge {
+      display: flex;
+      align-items: baseline;
+      gap: 3px
+    }
+
+    .res-big {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--accent-dark);
+      font-family: var(--font-head);
+      line-height: 1
+    }
+
+    .res-of {
+      font-size: 12px;
+      color: var(--text-faint)
+    }
+
+    .res-card-body {
+      padding: 14px 16px 16px
+    }
+
+    .sbar {
+      height: 5px;
+      background: var(--bg);
+      border-radius: 100px;
+      margin-bottom: 13px;
+      overflow: hidden
+    }
+
+    .sbar-f {
+      height: 100%;
+      border-radius: 100px;
+      transition: width .6s cubic-bezier(.23, 1, .32, 1)
+    }
+
+    .compare-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 12px
+    }
+
+    @media(max-width:600px) {
+      .compare-grid {
+        grid-template-columns: 1fr
+      }
+    }
+
+    .compare-panel {
+      border-radius: var(--radius-xs);
+      padding: 10px 12px;
+      font-size: 12px;
+      line-height: 1.6
+    }
+
+    .compare-panel.student {
+      background: #f8f9fc;
+      border: 1px solid var(--border)
+    }
+
+    .compare-panel.model {
+      background: linear-gradient(135deg, #f0f0ff, #fdf2f8);
+      border: 1px solid #c4b5fd
+    }
+
+    .compare-panel-lbl {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      margin-bottom: 5px;
+      font-family: var(--font-head)
+    }
+
+    .compare-panel.student .compare-panel-lbl {
+      color: var(--text-mid)
+    }
+
+    .compare-panel.model .compare-panel-lbl {
+      color: #5b21b6
+    }
+
+    .compare-panel p {
+      color: #374151
+    }
+
+    .compare-panel.model p {
+      color: #3b1f8c
+    }
+
+    .fb-lbl {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--text-faint);
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      margin-bottom: 5px;
+      font-family: var(--font-head)
+    }
+
+    .fb-txt {
+      background: #f8f9fc;
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-xs);
+      padding: 10px 12px;
+      font-size: 12px;
+      color: #374151;
+      line-height: 1.6;
+      margin-bottom: 10px
+    }
+
+    .kw-found {
+      font-size: 11px;
+      padding: 2px 9px;
+      border-radius: 100px;
+      background: var(--accent-bg);
+      color: #065f46;
+      display: inline-block;
+      margin: 2px 2px 0 0;
+      font-weight: 500
+    }
+
+    .kw-miss {
+      font-size: 11px;
+      padding: 2px 9px;
+      border-radius: 100px;
+      background: var(--danger-bg);
+      color: #b91c1c;
+      display: inline-block;
+      margin: 2px 2px 0 0;
+      font-weight: 500
+    }
+
+    .improve-area {
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      border-radius: var(--radius-xs);
+      padding: 9px 11px;
+      font-size: 12px;
+      color: #78350f;
+      line-height: 1.55;
+      margin-top: 5px
+    }
+
+    .improve-lbl {
+      font-size: 10px;
+      font-weight: 700;
+      color: #b45309;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      margin-bottom: 3px;
+      font-family: var(--font-head)
+    }
+
+    /* ── Published success ───── */
+    .pub-success {
+      text-align: center;
+      padding: 50px 24px
+    }
+
+    .pub-ico {
+      width: 66px;
+      height: 66px;
+      background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+      box-shadow: 0 4px 20px rgba(14, 203, 143, .2)
+    }
+
+    .pub-ico svg {
+      width: 28px;
+      height: 28px;
+      stroke: #065f46;
+      fill: none;
+      stroke-width: 2.5;
+      stroke-linecap: round
+    }
+
+    /* ── Submit bar ──────────── */
+    .submit-bar {
+      background: rgba(255, 255, 255, .92);
+      backdrop-filter: blur(12px);
+      border-top: 1px solid var(--border);
+      padding: 13px 22px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0
+    }
+
+    .submit-bar-left {
+      font-size: 12.5px;
+      color: var(--text-mid)
+    }
+
+    /* ── Misc ────────────────── */
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 16px 0
+    }
+
+    .full-btn {
+      width: 100%;
+      padding: 12px;
+      border-radius: var(--radius-sm);
+      background: linear-gradient(135deg, var(--accent), #07b47a);
+      color: #fff;
+      border: none;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      font-family: var(--font-body);
+      box-shadow: 0 3px 12px rgba(14, 203, 143, .25);
+      margin-top: 6px;
+      transition: all .18s
+    }
+
+    .full-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(14, 203, 143, .35)
+    }
+
+    .name-inp {
+      width: 100%;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px 13px;
+      font-size: 13px;
+      font-family: var(--font-body);
+      color: var(--text);
+      outline: none;
+      background: #fafafa;
+      transition: all .15s;
+      margin-bottom: 16px
+    }
+
+    .name-inp:focus {
+      border-color: var(--accent);
+      background: #fff;
+      box-shadow: 0 0 0 2px var(--accent-glow)
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+
+    <!-- ── SIDEBAR ─────────────────────────────────── -->
+    <div class="sidebar">
+      <div class="sb-logo">
+        <div class="sb-logomark">
+          <svg viewBox="0 0 24 24">
+            <path d="M4 6h16M4 12h10M4 18h13" />
+          </svg>
+        </div>
+        <span class="sb-logotext">SDA</span>
+      </div>
+      <div class="sb-nav">
+        <div class="sb-section">Platform</div>
+        <div class="sb-item" onclick="goHome()">
+          <svg viewBox="0 0 24 24">
+            <path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" />
+            <path d="M9 21V12h6v9" />
+          </svg>Home
+        </div>
+        <div class="sb-item"><svg viewBox="0 0 24 24">
+            <path d="M4 4h16v4H4zM4 12h16v4H4zM4 20h10" />
+            <circle cx="19" cy="20" r="2" />
+          </svg>Rapid Revision</div>
+        <div class="sb-item"><svg viewBox="0 0 24 24">
+            <circle cx="12" cy="8" r="4" />
+            <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
+          </svg>Learning</div>
+        <div class="sb-section">Exam</div>
+        <div class="sb-item active"><svg viewBox="0 0 24 24">
+            <rect x="4" y="2" width="16" height="20" rx="2" />
+            <path d="M8 7h8M8 11h8M8 15h4" />
+          </svg>Exam Hub</div>
+        <div class="sb-item"><svg viewBox="0 0 24 24">
+            <path d="M12 20h9M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4 12.5-12.5z" />
+          </svg>Descriptive AI</div>
+      </div>
+      <div class="sb-bottom">
+        <div class="sb-item"><svg viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="10" />
+            <path d="M12 8v4M12 16h.01" />
+          </svg>Help</div>
+        <div class="sb-item" id="profileItem">
+          <svg viewBox="0 0 24 24">
+            <circle cx="12" cy="8" r="4" />
+            <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
+          </svg>
+          <span id="profileLabel">Profile</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── MAIN ─────────────────────────────────────── -->
+    <div class="main">
+      <div class="topbar">
+        <div class="topbar-left" id="tb-crumb">Exam Hub</div>
+        <div class="topbar-right">
+          <button class="top-btn btn-sai">
+            <svg viewBox="0 0 24 24" stroke="#fff" fill="none" stroke-width="2" stroke-linecap="round">
+              <path d="M12 2l2 7h7l-5.5 4 2 7L12 16l-5.5 4 2-7L3 9h7z" />
+            </svg>
+            Shaheen AI
+          </button>
+          <button class="top-btn btn-srch">
+            <svg viewBox="0 0 24 24" stroke="#fff" fill="none" stroke-width="2" stroke-linecap="round">
+              <circle cx="11" cy="11" r="7" />
+              <path d="M16.5 16.5L21 21" />
+            </svg>
+            Search
+          </button>
+          <div class="avatar" id="avatarEl" style="background:#e74c3c">SS</div>
+        </div>
+      </div>
+
+      <div class="page" id="page-area">
+
+        <!-- ══ HOME ══════════════════════════════════════ -->
+        <div id="s-home" class="screen active">
+          <div class="page-h">Exam Hub</div>
+          <div class="page-sub">Create or attend AI-evaluated exams powered by Orientrix</div>
+          <div class="role-bar">
+            <button class="role-btn on" id="rb-s" onclick="setRole('student')">👤 Student View</button>
+            <button class="role-btn" id="rb-t" onclick="setRole('teacher')">🖥 Teacher View</button>
+          </div>
+          <div class="card-grid">
+            <div class="ec">
+              <div class="ec-ico" style="background:#eef2ff"><svg style="stroke:#534AB7" viewBox="0 0 24 24">
+                  <path d="M12 2l2 5h5l-4 3 1.5 5L12 12l-4.5 3L9 10 5 7h5z" />
+                </svg></div>
+              <div class="ec-name">Custom</div>
+              <div class="ec-desc">Build your own set</div>
+            </div>
+            <div class="ec">
+              <div class="ec-ico" style="background:#fffbeb"><svg style="stroke:#d97706" viewBox="0 0 24 24">
+                  <path d="M13 2L3 14h9l-1 8 10-12h-9z" />
+                </svg></div>
+              <div class="ec-name">Intensive</div>
+              <div class="ec-desc">High-difficulty practice</div>
+            </div>
+            <div class="ec">
+              <div class="ec-ico" style="background:#fdf2f8"><svg style="stroke:#9d174d" viewBox="0 0 24 24">
+                  <circle cx="12" cy="12" r="9" />
+                  <path d="M12 7v5l3 3" />
+                </svg></div>
+              <div class="ec-name">Timed</div>
+              <div class="ec-desc">Beat the clock</div>
+            </div>
+            <div class="ec hi" onclick="startDescriptive()">
+              <div class="ec-ico" style="background:var(--accent-bg)"><svg style="stroke:var(--accent-dark)"
+                  viewBox="0 0 24 24">
+                  <path d="M12 20h9M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4L16.5 3.5z" />
+                </svg></div>
+              <div class="ec-name">Descriptive</div>
+              <div class="ec-desc">AI-evaluated answers</div>
+              <div class="new-pill">✦ Live · Gemini AI</div>
+            </div>
+            <div class="ec">
+              <div class="ec-ico" style="background:#eff6ff"><svg style="stroke:#1d4ed8" viewBox="0 0 24 24">
+                  <circle cx="12" cy="12" r="9" />
+                  <path d="M9 12l2 2 4-4" />
+                </svg></div>
+              <div class="ec-name">Topic Wise</div>
+              <div class="ec-desc">Focus on one chapter</div>
+            </div>
+            <div class="ec">
+              <div class="ec-ico" style="background:#fef2f2"><svg style="stroke:#b91c1c" viewBox="0 0 24 24">
+                  <path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z" />
+                </svg></div>
+              <div class="ec-name">Mock Exam</div>
+              <div class="ec-desc">Full paper simulation</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ TEACHER STEP 1: UPLOAD ═════════════════════ -->
+        <div id="s-t1" class="screen">
+          <div class="bc"><span onclick="goHome()">Exam Hub</span><svg viewBox="0 0 24 24">
+              <path d="M9 18l6-6-6-6" />
+            </svg><span class="cur">Create Descriptive Exam</span></div>
+          <div style="display:flex;align-items:center;gap:0;margin-bottom:4px;flex-wrap:wrap">
+            <span class="badge warn"><svg viewBox="0 0 24 24">
+                <path d="M13 2L3 14h9l-1 8 10-12h-9z" />
+              </svg>Orientrix AI</span>
+            <span class="badge ai"><svg viewBox="0 0 24 24">
+                <path d="M12 2l2 7h7l-5.5 4 2 7L12 16l-5.5 4 2-7L3 9h7z" />
+              </svg>Gemini AI</span>
+          </div>
+          <div class="steps" style="margin-top:14px">
+            <div class="stp on">
+              <div class="stp-n">1</div>
+              <div class="stp-l">Upload papers</div>
+            </div>
+            <div class="stp-line"></div>
+            <div class="stp off">
+              <div class="stp-n">2</div>
+              <div class="stp-l">Review & edit rubric</div>
+            </div>
+            <div class="stp-line"></div>
+            <div class="stp off">
+              <div class="stp-n">3</div>
+              <div class="stp-l">Publish for students</div>
+            </div>
+          </div>
+
+          <!-- Model selector (no API key input — key is on the server) -->
+          <div class="model-bar">
+            <span class="model-bar-label">⚡ AI Model</span>
+            <select id="model-sel">
+              <option value="gemini-2.5-flash">Gemini 2.5 Flash · Recommended (free tier)</option>
+              <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
+              <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
+            </select>
+            <span class="model-note">Key secured on server</span>
+          </div>
+
+          <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:5px;font-family:var(--font-head)">
+            Upload Papers</div>
+          <div style="font-size:12.5px;color:var(--text-mid);margin-bottom:16px">Upload your question paper and —
+            optionally — a model answer paper. Gemini uses both to generate a richer, more accurate marking rubric.
+          </div>
+
+          <div class="boost-box">
+            <svg viewBox="0 0 24 24">
+              <path d="M12 2l2 7h7l-5.5 4 2 7L12 16l-5.5 4 2-7L3 9h7z" />
+            </svg>
+            <div><strong>Tip:</strong> Adding a model answer boosts rubric quality — Gemini extracts exact expected
+              content, key phrases, and scoring criteria directly from your official answers.</div>
+          </div>
+
+          <div class="err-box" id="t1-err"></div>
+
+          <div class="upz-pair">
+            <div class="upz-wrap">
+              <div class="upz-label">Question Paper <span class="req">* Required</span></div>
+              <div class="upz" id="t1-drop" onclick="document.getElementById('t1inp').click()"
+                ondragover="upzDrag(event,'t1-drop')" ondragleave="upzLeave('t1-drop')" ondrop="upzDrop(event,'t1inp')">
+                <div class="upz-ico" style="background:var(--accent-bg)">
+                  <svg viewBox="0 0 24 24" style="stroke:var(--accent-dark)">
+                    <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+                    <path d="M14 2v6h6M12 12v6M9 15l3-3 3 3" />
+                  </svg>
+                </div>
+                <div class="upz-main" id="t1-drop-main">Question Paper PDF</div>
+                <div class="upz-hint">Click or drag & drop</div>
+                <div class="upz-fname" id="t1-fname" style="display:none"></div>
+                <span class="upz-clear" id="t1-clear" style="display:none" onclick="t1Clear(event)">Remove ×</span>
+              </div>
+              <input type="file" accept=".pdf" id="t1inp" style="display:none" onchange="t1File(this.files[0])">
+            </div>
+            <div class="upz-wrap">
+              <div class="upz-label">Model Answer Paper <span class="opt">Optional · boosts quality</span></div>
+              <div class="upz model-upz" id="t1-drop2" onclick="document.getElementById('t1inp2').click()"
+                ondragover="upzDrag(event,'t1-drop2')" ondragleave="upzLeave('t1-drop2')"
+                ondrop="upzDrop(event,'t1inp2')">
+                <div class="upz-ico" style="background:var(--purple-bg)">
+                  <svg viewBox="0 0 24 24" style="stroke:var(--purple)">
+                    <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2" />
+                    <rect x="9" y="3" width="6" height="4" rx="2" />
+                    <path d="M9 12h6M9 16h4" />
+                  </svg>
+                </div>
+                <div class="upz-main" id="t1-drop2-main">Model Answer PDF</div>
+                <div class="upz-hint">Official answer / marking scheme</div>
+                <div class="upz-fname purple" id="t1-fname2" style="display:none"></div>
+                <span class="upz-clear" id="t1-clear2" style="display:none" onclick="t1Clear2(event)">Remove ×</span>
+              </div>
+              <input type="file" accept=".pdf" id="t1inp2" style="display:none" onchange="t1File2(this.files[0])">
+            </div>
+          </div>
+
+          <button class="btn-go" id="t1-btn" disabled onclick="t1Analyse()" style="margin-top:4px">
+            <svg style="width:14px;height:14px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round"
+              viewBox="0 0 24 24">
+              <path d="M12 2l2 7h7l-5.5 4 2 7L12 16l-5.5 4 2-7L3 9h7z" />
+            </svg>
+            Analyse with Gemini AI
+          </button>
+        </div>
+
+        <!-- ══ TEACHER LOADING ════════════════════════════ -->
+        <div id="s-tload" class="screen">
+          <div class="load-wrap">
+            <div class="load-ring"></div>
+            <div class="load-t" id="tl-t">Reading your papers…</div>
+            <div class="load-s" id="tl-s">Sending files to Gemini AI</div>
+            <div class="load-pulse"><span></span><span></span><span></span></div>
+          </div>
+        </div>
+
+        <!-- ══ TEACHER STEP 2: EDITABLE RUBRIC ═══════════ -->
+        <div id="s-t2" class="screen">
+          <div class="bc"><span onclick="goHome()">Exam Hub</span><svg viewBox="0 0 24 24">
+              <path d="M9 18l6-6-6-6" />
+            </svg><span class="cur">Review Rubric</span></div>
+          <div class="steps">
+            <div class="stp done">
+              <div class="stp-n">✓</div>
+              <div class="stp-l">Upload papers</div>
+            </div>
+            <div class="stp-line"></div>
+            <div class="stp on">
+              <div class="stp-n">2</div>
+              <div class="stp-l">Review & edit rubric</div>
+            </div>
+            <div class="stp-line"></div>
+            <div class="stp off">
+              <div class="stp-n">3</div>
+              <div class="stp-l">Publish for students</div>
+            </div>
+          </div>
+          <div class="ok-banner" id="rubric-banner">
+            <svg viewBox="0 0 24 24">
+              <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
+              <polyline points="22 4 12 14.01 9 11.01" />
+            </svg>
+            <div class="ok-banner-txt" id="rubric-banner-txt">Rubric generated — review each question, edit any field,
+              then publish.</div>
+          </div>
+          <div class="rubric-action-bar" id="rubric-action-bar" style="display:none">
+            <div class="rab-left"><strong id="rab-count">0</strong> question(s) edited — changes saved locally</div>
+            <div class="rab-right"><button class="rab-btn rab-reset" onclick="resetAllEdits()">Reset all</button></div>
+          </div>
+          <div id="rubric-list"></div>
+          <div style="display:flex;gap:10px;margin-top:4px">
+            <button class="btn-go" style="flex:1" onclick="teacherPublish()">
+              <svg style="width:14px;height:14px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round"
+                viewBox="0 0 24 24">
+                <path d="M22 2L11 13M22 2L15 22l-4-9-9-4 19-7z" />
+              </svg>
+              Publish Exam for Students
+            </button>
+          </div>
+          <div style="font-size:11px;color:var(--text-faint);text-align:center;margin-top:8px">All edits are applied —
+            students will see the final rubric when evaluated</div>
+        </div>
+
+        <!-- ══ TEACHER PUBLISHED ══════════════════════════ -->
+        <div id="s-t3" class="screen">
+          <div class="pub-success">
+            <div class="pub-ico"><svg viewBox="0 0 24 24">
+                <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
+                <polyline points="22 4 12 14.01 9 11.01" />
+              </svg></div>
+            <div class="load-t" style="color:#065f46;margin-bottom:7px">Exam Published!</div>
+            <div class="load-s" id="t3-sub">Students can now select and attend this exam.</div>
+            <button class="btn-go" style="max-width:240px;margin:22px auto 0" onclick="goHome()">Back to Exam
+              Hub</button>
+            <button class="btn-sec" style="max-width:240px;margin:0 auto" onclick="switchToStudentAfterPublish()">Switch
+              to Student View →</button>
+          </div>
+        </div>
+
+        <!-- ══ STUDENT: SELECT EXAM ═══════════════════════ -->
+        <div id="s-s1" class="screen">
+          <div class="bc"><span onclick="goHome()">Exam Hub</span><svg viewBox="0 0 24 24">
+              <path d="M9 18l6-6-6-6" />
+            </svg><span class="cur">Descriptive Exams</span></div>
+          <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:4px;font-family:var(--font-head)">
+            Available Exams</div>
+          <div style="font-size:12.5px;color:var(--text-mid);margin-bottom:18px">Select an exam to attend. Your answers
+            will be AI-evaluated with detailed feedback.</div>
+          <div id="s-exam-list"></div>
+          <div class="ibox" style="margin-top:8px">
+            <svg viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M12 8v4M12 16h.01" />
+            </svg>
+            Ask your teacher to publish an exam in Teacher View — it will appear here automatically.
+          </div>
+        </div>
+
+        <!-- ══ STUDENT: UPLOAD ANSWER PDF ════════════════ -->
+        <div id="s-s2" class="screen">
+          <div class="bc">
+            <span onclick="show('s-s1');crumb('Descriptive Exams')">Exams</span>
+            <svg viewBox="0 0 24 24">
+              <path d="M9 18l6-6-6-6" />
+            </svg>
+            <span class="cur" id="s2-crumb">Submit Answers</span>
+          </div>
+          <div class="exam-hdr">
+            <div class="exam-title" id="s2-title">Exam</div>
+            <div class="etag-row" id="s2-meta"></div>
+          </div>
+          <div class="steps">
+            <div class="stp on">
+              <div class="stp-n">1</div>
+              <div class="stp-l">Upload answer PDF</div>
+            </div>
+            <div class="stp-line"></div>
+            <div class="stp off">
+              <div class="stp-n">2</div>
+              <div class="stp-l">AI evaluates</div>
+            </div>
+            <div class="stp-line"></div>
+            <div class="stp off">
+              <div class="stp-n">3</div>
+              <div class="stp-l">Results & feedback</div>
+            </div>
+          </div>
+          <div style="font-size:12px;font-weight:600;color:var(--text-mid);margin-bottom:6px">Your Name</div>
+          <input id="stu-name" type="text" class="name-inp" placeholder="e.g. Arun Krishna">
+          <div
+            style="font-size:12px;font-weight:600;color:var(--text-mid);margin-bottom:8px;display:flex;align-items:center;gap:6px">
+            <svg style="width:13px;height:13px;stroke:var(--accent-dark);fill:none;stroke-width:2;stroke-linecap:round"
+              viewBox="0 0 24 24">
+              <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+              <polyline points="14,2 14,8 20,8" />
+            </svg>
+            Exam Questions
+          </div>
+          <div id="s2-qpreview"
+            style="background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:13px 15px;margin-bottom:16px;max-height:190px;overflow-y:auto;font-size:12px;color:var(--text-mid);line-height:1.75">
+          </div>
+          <div class="ibox">
+            <svg viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M12 8v4M12 16h.01" />
+            </svg>
+            Write your answers on paper or in a document, save as PDF, then upload below. Gemini will evaluate them
+            against the rubric.
+          </div>
+          <div class="upz-wrap">
+            <div class="upz-label">Answer Sheet PDF <span class="req">* Required</span></div>
+            <div class="upz" id="s2-drop" onclick="document.getElementById('s2inp').click()"
+              ondragover="upzDrag(event,'s2-drop')" ondragleave="upzLeave('s2-drop')" ondrop="upzDrop(event,'s2inp')">
+              <div class="upz-ico" style="background:var(--accent-bg)">
+                <svg viewBox="0 0 24 24" style="stroke:var(--accent-dark)">
+                  <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12" />
+                </svg>
+              </div>
+              <div class="upz-main">Upload Answer Sheet PDF</div>
+              <div class="upz-hint">Handwritten or typed · Click or drag & drop</div>
+              <div class="upz-fname" id="s2-fname" style="display:none"></div>
+              <span class="upz-clear" id="s2-clear" style="display:none" onclick="s2Clear(event)">Remove ×</span>
+            </div>
+            <input type="file" accept=".pdf" id="s2inp" style="display:none" onchange="s2File(this.files[0])">
+          </div>
+          <div class="err-box" id="s2-err"></div>
+        </div>
+
+        <!-- ══ STUDENT LOADING ════════════════════════════ -->
+        <div id="s-sload" class="screen">
+          <div class="load-wrap">
+            <div class="load-ring"></div>
+            <div class="load-t" id="sl-t">Evaluating your answers…</div>
+            <div class="load-s" id="sl-s">Gemini AI is reviewing each response</div>
+            <div class="load-pulse"><span></span><span></span><span></span></div>
+          </div>
+        </div>
+
+        <!-- ══ STUDENT RESULTS ════════════════════════════ -->
+        <div id="s-sres" class="screen">
+          <div class="bc"><span onclick="goHome()">Exam Hub</span><svg viewBox="0 0 24 24">
+              <path d="M9 18l6-6-6-6" />
+            </svg><span class="cur">Your Results</span></div>
+          <span class="badge warn"><svg viewBox="0 0 24 24">
+              <path d="M13 2L3 14h9l-1 8 10-12h-9z" />
+            </svg>Orientrix · Evaluated by Gemini AI</span>
+          <div class="sc-card">
+            <div class="sc-label-top" id="sc-name">Student · Exam</div>
+            <div style="display:flex;align-items:baseline;justify-content:center;gap:8px">
+              <div class="sc-big" id="sc-num">—</div>
+              <div class="sc-total" id="sc-total-lbl">/ —</div>
+            </div>
+            <div class="sc-pct" id="sc-pct"></div>
+            <div class="grade-pill" id="sc-grade"></div>
+            <div class="sc-improve" id="sc-improve-wrap" style="display:none">
+              <div class="sc-improve-h">📌 Areas to focus on</div>
+              <div id="sc-improve-list" style="font-size:12px;color:rgba(255,255,255,.6);line-height:1.7"></div>
+            </div>
+          </div>
+          <div id="res-list"></div>
+          <button class="full-btn" onclick="goHome()">
+            <svg style="width:13px;height:13px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round"
+              viewBox="0 0 24 24">
+              <path d="M19 12H5M12 5l-7 7 7 7" />
+            </svg>
+            Back to Exam Hub
+          </button>
+        </div>
+
+      </div><!-- end .page -->
+
+      <!-- SUBMIT BAR -->
+      <div class="submit-bar" id="submit-bar" style="display:none">
+        <div class="submit-bar-left" id="sb-info">Upload your answer sheet PDF above</div>
+        <button class="btn-go" style="width:auto;padding:9px 24px" id="sb-btn" disabled onclick="submitAnswers()">
+          <svg style="width:13px;height:13px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round"
+            viewBox="0 0 24 24">
+            <path d="M12 2l2 7h7l-5.5 4 2 7L12 16l-5.5 4 2-7L3 9h7z" />
+          </svg>
+          Submit & Evaluate
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ─────────────────────────────────────────────────────────────────────────────
+    // STATE
+    // ─────────────────────────────────────────────────────────────────────────────
+    let role = 'student';
+    let geminiModel = 'gemini-2.5-flash';
+    let tFile = null;
+    let tFile2 = null;
+    let publishedExams = [];
+    let currentExam = null;
+    let sFile = null;
+    let _originalRubric = [];
+    let _editedCount = 0;
+
+    // ─────────────────────────────────────────────────────────────────────────────
+    // BACKEND PROXY CALL  (replaces direct Gemini fetch)
+    // ─────────────────────────────────────────────────────────────────────────────
+    async function callGemini(body) {
+      const model = document.getElementById('model-sel')?.value || geminiModel;
+      const res = await fetch('/api/gemini', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model, body }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Server error ' + res.status);
+      return data;
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────────
+    // ROLE & NAV
+    // ─────────────────────────────────────────────────────────────────────────────
+    function setRole(r) {
+      role = r;
+      document.getElementById('rb-s').className = 'role-btn' + (r === 'student' ? ' on' : '');
+      document.getElementById('rb-t').className = 'role-btn' + (r === 'teacher' ? ' on' : '');
+      document.getElementById('avatarEl').textContent = r === 'teacher' ? 'TR' : 'SS';
+      document.getElementById('avatarEl').style.background = r === 'teacher' ? '#7c6ff7' : '#e74c3c';
+      document.getElementById('profileLabel').textContent = r === 'teacher' ? 'Teacher' : 'Profile';
+    }
+    function crumb(t) { document.getElementById('tb-crumb').textContent = t }
+    function show(id) {
+      ['s-home', 's-t1', 's-tload', 's-t2', 's-t3', 's-s1', 's-s2', 's-sload', 's-sres'].forEach(s =>
+        document.getElementById(s).classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+      document.getElementById('submit-bar').style.display = id === 's-s2' ? 'flex' : 'none';
+    }
+    function goHome() { show('s-home'); crumb('Exam Hub') }
+    function startDescriptive() {
+      if (role === 'teacher') { show('s-t1'); crumb('Create Descriptive Exam') }
+      else { renderExamList(); show('s-s1'); crumb('Descriptive Exams') }
+    }
+    function switchToStudentAfterPublish() {
+      setRole('student'); renderExamList(); show('s-s1'); crumb('Descriptive Exams');
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────────
+    // DRAG & DROP
+    // ─────────────────────────────────────────────────────────────────────────────
+    function upzDrag(e, id) { e.preventDefault(); document.getElementById(id).classList.add('drag') }
+    function upzLeave(id) { document.getElementById(id).classList.remove('drag') }
+    function upzDrop(e, inputId) {
+      e.preventDefault();
+      upzLeave(e.currentTarget.id);
+      const f = e.dataTransfer.files[0];
+      if (!f) return;
+      if (inputId === 't1inp') t1File(f);
+      else if (inputId === 't1inp2') t1File2(f);
+      else if (inputId === 's2inp') s2File(f);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────────
+    // TEACHER FILE HANDLERS
+    // ─────────────────────────────────────────────────────────────────────────────
+    function t1File(f) {
+      if (!f) return; tFile = f;
+      document.getElementById('t1-drop').classList.add('has-file');
+      document.getElementById('t1-fname').textContent = '📄 ' + f.name + ' (' + fmtSz(f.size) + ')';
+      document.getElementById('t1-fname').style.display = 'block';
+      document.getElementById('t1-clear').style.display = 'inline-block';
+      document.getElementById('t1-drop-main').textContent = 'Question Paper';
+      updateT1Btn();
+    }
+    function t1Clear(e) {
+      if (e) e.stopPropagation(); tFile = null;
+      document.getElementById('t1-drop').classList.remove('has-file');
+      document.getElementById('t1-fname').style.display = 'none';
+      document.getElementById('t1-clear').style.display = 'none';
+      document.getElementById('t1-drop-main').textContent = 'Question Paper PDF';
+      document.getElementById('t1inp').value = '';
+      updateT1Btn();
+    }
+    function t1File2(f) {
+      if (!f) return; tFile2 = f;
+      document.getElementById('t1-drop2').classList.add('has-file');
+      document.getElementById('t1-fname2').textContent = '📋 ' + f.name + ' (' + fmtSz(f.size) + ')';
+      document.getElementById('t1-fname2').style.display = 'block';
+      document.getElementById('t1-clear2').style.display = 'inline-block';
+      document.getElementById('t1-drop2-main').textContent = 'Model Answer';
+    }
+    function t1Clear2(e) {
+      if (e) e.stopPropagation(); tFile2 = null;
+      document.getElementById('t1-drop2').classList.remove('has-file');
+      document.getElementById('t1-fname2').style.display = 'none';
+      document.getElementById('t1-clear2').style.display = 'none';
+      document.getElementById('t1-drop2-main').textContent = 'Model Answer PDF';
+      document.getElementById('t1inp2').value = '';
+    }
+    function updateT1Btn() { document.getElementById('t1-btn').disabled = !tFile }
+    function fmtSz(b) { return b > 1048576 ? (b / 1048576).toFixed(1) + ' MB' : (b / 1024).toFixed(0) + ' KB' }
+
+    // ─────────────────────────────────────────────────────────────────────────────
+    // TEACHER ANALYSE
+    // ─────────────────────────────────────────────────────────────────────────────
+    async function t1Analyse() {
+      show('s-tload'); crumb('Analysing Papers…');
+      const hasModel = !!tFile2;
+      const msgs = hasModel ? [
+        ['Reading question paper…', 'Sending PDF to Gemini AI'],
+        ['Reading model answer…', 'Extracting expected answers'],
+        ['Building marking rubric…', 'Generating criteria from both documents'],
+        ['Finalising rubric…', 'Almost ready'],
+      ] : [
+        ['Reading your question paper…', 'Sending PDF to Gemini AI'],
+        ['Extracting questions…', 'Identifying questions and mark allocations'],
+        ['Building marking rubric…', 'Generating keywords, schemes, and criteria'],
+        ['Finalising rubric…', 'Almost ready'],
+      ];
+      let mi = 0;
+      const iv = setInterval(() => {
+        if (mi < msgs.length) {
+          document.getElementById('tl-t').textContent = msgs[mi][0];
+          document.getElementById('tl-s').textContent = msgs[mi][1];
+          mi++;
+        }
+      }, 2400);
+      try {
+        const b64q = await toB64(tFile);
+        const b64m = hasModel ? await toB64(tFile2) : null;
+        const rubric = await geminiExtractRubric(b64q, b64m);
+        clearInterval(iv);
+        _originalRubric = JSON.parse(JSON.stringify(rubric));
+        renderEditableRubric(rubric, tFile.name, hasModel);
+        show('s-t2'); crumb('Review & Edit Rubric');
+      } catch (e) {
+        clearInterval(iv);
+        show('s-t1'); crumb('Create Descriptive Exam');
+        showErr('t1-err', 'AI error: ' + e.message);
+      }
+    }
+
+    async function geminiExtractRubric(b64qPdf, b64mPdf) {
+      const hasModel = !!b64mPdf;
+      const basePrompt = `You are an expert examiner AI. Analyze the provided document(s) and extract ALL questions with a complete marking rubric.
+
+Return ONLY a valid JSON array (no markdown, no explanation) with this exact structure:
+[
+  {
+    "id":"Q1",
+    "subject":"Subject · Topic",
+    "q":"Full question text",
+    "marks":5,
+    "kw":["keyword1","keyword2","keyword3"],
+    "scheme":"e.g. 2 marks: definition | 3 marks: explanation with examples",
+    "criteria":"What the evaluator should look for in the answer",
+    "modelAnswer":"Concise model answer or key points (2-4 sentences) summarising the ideal response"
+  }
+]
+
+Rules:
+- Extract EVERY question in the paper
+- id should be Q1, Q2, Q3 etc.
+- kw should be 3-6 key concepts/terms expected in a good answer${hasModel ? ' — extract directly from the model answer paper' : ''}
+- scheme should show how marks are split clearly
+- criteria should be specific and helpful for evaluation${hasModel ? ' — derive from the model answer paper' : ''}
+- modelAnswer: ${hasModel ? 'extract and summarise the official answer from the model answer document' : 'write a concise expected answer based on the question and topic'}
+- Return ONLY the JSON array, nothing else`;
+
+      const parts = [
+        { inline_data: { mime_type: 'application/pdf', data: b64qPdf } },
+        { text: '--- QUESTION PAPER ABOVE ---' },
+      ];
+      if (hasModel) {
+        parts.push({ inline_data: { mime_type: 'application/pdf', data: b64mPdf } });
+        parts.push({ text: '--- MODEL ANSWER PAPER ABOVE ---' });
+      }
+      parts.push({ text: basePrompt });
+
+      const data = await callGemini({
+        contents: [{ parts }],
+        generationConfig: { temperature: 0.1, maxOutputTokens: 8192 }
+      });
+
+      let text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      text = text.replace(/```json|```/g, '').trim();
+      const s = text.indexOf('['), e2 = text.lastIndexOf(']');
+      if (s === -1 || e2 === -1) throw new Error('No JSON array in Gemini response');
+      return JSON.parse(text.slice(s, e2 + 1));
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────────
+    // EDITABLE RUBRIC
+    // ─────────────────────────────────────────────────────────────────────────────
+    function renderEditableRubric(rubric, fileName, hasModel) {
+      const examTitle = fileName.replace(/\.pdf$/i, '').replace(/_/g, ' ');
+      document.getElementById('rubric-banner-txt').textContent =
+        `Gemini generated a rubric for ${rubric.length} question${rubric.length !== 1 ? 's' : ''} from "${examTitle}"${hasModel ? ' using both papers' : ''} — edit any field below, then publish.`;
+      window._pendingRubric = rubric;
+      window._pendingTitle = examTitle;
+      window._hasModelAnswer = hasModel;
+      _editedCount = 0;
+      const list = document.getElementById('rubric-list');
+      list.innerHTML = '';
+      rubric.forEach((q, qi) => {
+        const card = document.createElement('div');
+        card.className = 'rub-card';
+        card.dataset.idx = qi;
+        card.innerHTML = `
+    <div class="rub-card-header">
+      <div style="display:flex;align-items:center">
+        <span class="rub-qid">${q.id}</span>
+        <span class="rub-subject">${q.subject || ''}</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span class="changed-badge">Edited</span>
+        <div class="marks-stepper">
+          <button onclick="stepMarks(${qi},-1)">−</button>
+          <div class="marks-val" id="mv-${qi}">${q.marks}</div>
+          <button onclick="stepMarks(${qi},+1)">+</button>
+        </div>
+        <span class="marks-label">marks</span>
+      </div>
+    </div>
+    <div class="rub-card-body">
+      <div class="rub-qtxt">${escHtml(q.q)}</div>
+      ${hasModel ? `<div class="rub-model-hint">
+        <svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="2"/><path d="M9 12h6M9 16h4"/></svg>
+        <div><strong>Model Answer (from your paper):</strong> ${escHtml(q.modelAnswer || '—')}</div>
+      </div>`: ''}
+      <div class="rub-field">
+        <div class="rub-field-lbl">Keywords <span class="edit-hint">— press Enter or comma to add</span></div>
+        <div class="kw-editor" id="kwe-${qi}" onclick="focusKwInput(${qi})">
+          ${(q.kw || []).map(k => `<span class="kw-chip">${escHtml(k)}<span class="kw-chip-x" onclick="rmKw(${qi},this)">×</span></span>`).join('')}
+          <input class="kw-input" id="kwi-${qi}" placeholder="add keyword…" onkeydown="kwKeydown(event,${qi})">
+        </div>
+      </div>
+      <div class="rub-field">
+        <div class="rub-field-lbl">Marking Scheme <span class="edit-hint">— editable</span></div>
+        <textarea class="rub-textarea" id="scheme-${qi}" rows="2" oninput="markEdited(${qi})">${escHtml(q.scheme || '')}</textarea>
+      </div>
+      <div class="rub-field">
+        <div class="rub-field-lbl">Evaluation Criteria <span class="edit-hint">— editable</span></div>
+        <textarea class="rub-textarea" id="crit-${qi}" rows="2" oninput="markEdited(${qi})">${escHtml(q.criteria || '')}</textarea>
+      </div>
+      ${hasModel ? `<div class="rub-field">
+        <div class="rub-field-lbl">Model Answer <span class="edit-hint">— editable</span></div>
+        <textarea class="rub-textarea" id="moda-${qi}" rows="3" oninput="markEdited(${qi})">${escHtml(q.modelAnswer || '')}</textarea>
+      </div>`: ''}
+    </div>`;
+        list.appendChild(card);
+      });
+    }
+
+    function escHtml(s) { return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;') }
+
+    function stepMarks(qi, d) {
+      const rubric = window._pendingRubric;
+      rubric[qi].marks = Math.max(1, (rubric[qi].marks || 1) + d);
+      document.getElementById('mv-' + qi).textContent = rubric[qi].marks;
+      markEdited(qi);
+    }
+    function markEdited(qi) {
+      const card = document.querySelector(`.rub-card[data-idx="${qi}"]`);
+      if (!card) return;
+      if (!card.classList.contains('changed')) {
+        card.classList.add('changed'); _editedCount++;
+        if (_editedCount === 1) document.getElementById('rubric-action-bar').style.display = 'flex';
+        document.getElementById('rab-count').textContent = _editedCount;
+      }
+      const rubric = window._pendingRubric;
+      rubric[qi].scheme = document.getElementById('scheme-' + qi)?.value || rubric[qi].scheme;
+      rubric[qi].criteria = document.getElementById('crit-' + qi)?.value || rubric[qi].criteria;
+      if (document.getElementById('moda-' + qi)) rubric[qi].modelAnswer = document.getElementById('moda-' + qi).value;
+    }
+    function resetAllEdits() {
+      const orig = JSON.parse(JSON.stringify(_originalRubric));
+      window._pendingRubric = orig;
+      renderEditableRubric(orig, window._pendingTitle + '.pdf', window._hasModelAnswer);
+      document.getElementById('rubric-action-bar').style.display = 'none';
+      _editedCount = 0;
+    }
+    function focusKwInput(qi) { document.getElementById('kwi-' + qi)?.focus() }
+    function kwKeydown(e, qi) {
+      if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); addKw(qi) }
+      else if (e.key === 'Backspace' && !e.target.value) rmLastKw(qi);
+    }
+    function addKw(qi) {
+      const inp = document.getElementById('kwi-' + qi);
+      const val = inp.value.replace(/,/g, '').trim();
+      if (!val) return;
+      const rubric = window._pendingRubric;
+      rubric[qi].kw = rubric[qi].kw || [];
+      rubric[qi].kw.push(val);
+      const chip = document.createElement('span');
+      chip.className = 'kw-chip';
+      chip.innerHTML = `${escHtml(val)}<span class="kw-chip-x" onclick="rmKw(${qi},this)">×</span>`;
+      document.getElementById('kwe-' + qi).insertBefore(chip, inp);
+      inp.value = ''; markEdited(qi);
+    }
+    function rmKw(qi, xEl) {
+      const chip = xEl.parentElement;
+      const txt = chip.childNodes[0].textContent.trim();
+      chip.remove();
+      const rubric = window._pendingRubric;
+      rubric[qi].kw = (rubric[qi].kw || []).filter(k => k !== txt);
+      markEdited(qi);
+    }
+    function rmLastKw(qi) {
+      const editor = document.getElementById('kwe-' + qi);
+      const chips = [...editor.querySelectorAll('.kw-chip')];
+      if (chips.length) chips[chips.length - 1].remove();
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────────
+    // TEACHER PUBLISH
+    // ─────────────────────────────────────────────────────────────────────────────
+    function teacherPublish() {
+      const rubric = window._pendingRubric;
+      const title = window._pendingTitle || 'Descriptive Exam';
+      const hasModel = window._hasModelAnswer || false;
+      const total = rubric.reduce((s, q) => s + (q.marks || 0), 0);
+      publishedExams.push({ title, rubric, total, hasModel, ts: Date.now() });
+      document.getElementById('t3-sub').textContent =
+        `"${title}" (${rubric.length} questions · ${total} marks${hasModel ? ' · includes model answers' : ''}) is now live for students.`;
+      show('s-t3'); crumb('Exam Published');
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────────
+    // STUDENT EXAM LIST
+    // ─────────────────────────────────────────────────────────────────────────────
+    function renderExamList() {
+      const el = document.getElementById('s-exam-list');
+      if (!publishedExams.length) {
+        el.innerHTML = `<div class="no-exams"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M12 12v4M10 14h4"/></svg><p>No exams published yet</p></div>`;
+        return;
+      }
+      el.innerHTML = publishedExams.map((ex, i) => `
+  <div class="pub-exam-card" onclick="selectExam(${i})">
+    <div>
+      <div class="pec-name">${escHtml(ex.title)}</div>
+      <div class="pec-meta">${ex.rubric.length} questions · ${ex.total} marks · ${tsAgo(ex.ts)}</div>
+    </div>
+    <div class="pec-right">
+      <span class="pec-badge live">● Live</span>
+      ${ex.hasModel ? '<span class="pec-badge model-ans">✦ Model Answers</span>' : ''}
+      <button class="start-btn">Start Exam →</button>
+    </div>
+  </div>`).join('');
+    }
+    function tsAgo(ts) { const s = Math.floor((Date.now() - ts) / 1000); if (s < 60) return 'just now'; if (s < 3600) return Math.floor(s / 60) + 'm ago'; return Math.floor(s / 3600) + 'h ago' }
+
+    function selectExam(i) {
+      currentExam = publishedExams[i];
+      document.getElementById('s2-title').textContent = currentExam.title;
+      document.getElementById('s2-crumb').textContent = currentExam.title;
+      crumb(currentExam.title);
+      document.getElementById('s2-meta').innerHTML = `
+  <span class="etag"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/></svg>${currentExam.rubric.length} questions</span>
+  <span class="etag"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>${currentExam.total} marks</span>
+  ${currentExam.hasModel ? '<span class="etag" style="color:#5b21b6;background:#f0f0ff">✦ Model answers included</span>' : ''}`;
+      document.getElementById('s2-qpreview').innerHTML = currentExam.rubric.map((q, i) =>
+        `<div style="margin-bottom:8px;padding-bottom:8px;${i < currentExam.rubric.length - 1 ? 'border-bottom:1px solid var(--border)' : ''}">
+    <span style="font-weight:700;color:var(--accent-dark);font-size:10.5px;text-transform:uppercase;letter-spacing:.4px;font-family:var(--font-head)">${q.id}</span>
+    <span style="color:#374151;margin-left:5px">${escHtml(q.q)}</span>
+    <span style="color:var(--text-faint);margin-left:6px;font-size:11px">[${q.marks} marks]</span>
+  </div>`).join('');
+      s2Clear(); show('s-s2');
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────────
+    // STUDENT UPLOAD
+    // ─────────────────────────────────────────────────────────────────────────────
+    function s2File(f) {
+      if (!f) return; sFile = f;
+      document.getElementById('s2-drop').classList.add('has-file');
+      document.getElementById('s2-fname').textContent = '📄 ' + f.name + ' (' + fmtSz(f.size) + ')';
+      document.getElementById('s2-fname').style.display = 'block';
+      document.getElementById('s2-clear').style.display = 'inline-block';
+      document.getElementById('sb-btn').disabled = false;
+      document.getElementById('sb-info').textContent = f.name + ' ready to submit';
+      document.getElementById('s2-err').style.display = 'none';
+    }
+    function s2Clear(e) {
+      if (e) e.stopPropagation(); sFile = null;
+      document.getElementById('s2-drop').classList.remove('has-file');
+      document.getElementById('s2-fname').style.display = 'none';
+      document.getElementById('s2-clear').style.display = 'none';
+      document.getElementById('s2inp').value = '';
+      document.getElementById('sb-btn').disabled = true;
+      document.getElementById('sb-info').textContent = 'Upload your answer sheet PDF above';
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────────
+    // STUDENT SUBMIT & EVALUATE
+    // ─────────────────────────────────────────────────────────────────────────────
+    async function submitAnswers() {
+      const stuName = document.getElementById('stu-name').value.trim() || 'Student';
+      if (!sFile) { showErr('s2-err', 'Please upload your answer sheet PDF.'); return }
+      show('s-sload'); crumb('Evaluating…');
+      const msgs = [
+        ['Reading your answer sheet…', 'Extracting your responses'],
+        ['Matching to rubric…', 'Comparing against expected answers'],
+        ['Scoring each question…', 'Checking keywords and criteria'],
+        ['Generating feedback…', 'Preparing personalised insights'],
+      ];
+      let mi = 0;
+      const iv = setInterval(() => {
+        if (mi < msgs.length) {
+          document.getElementById('sl-t').textContent = msgs[mi][0];
+          document.getElementById('sl-s').textContent = msgs[mi][1];
+          mi++;
+        }
+      }, 2600);
+      try {
+        const b64 = await toB64(sFile);
+        const results = await geminiEvaluate(b64, currentExam, stuName);
+        clearInterval(iv);
+        renderResults(results, stuName);
+        show('s-sres'); crumb('Your Results');
+      } catch (e) {
+        clearInterval(iv);
+        show('s-s2'); crumb(currentExam.title);
+        showErr('s2-err', 'Evaluation error: ' + e.message);
+      }
+    }
+
+    async function geminiEvaluate(b64ans, exam, stuName) {
+      const hasModel = exam.hasModel;
+      const rubricStr = exam.rubric.map(q => `
+${q.id} [${q.marks} marks]
+Question: ${q.q}
+Keywords: ${(q.kw || []).join(', ')}
+Scheme: ${q.scheme}
+Criteria: ${q.criteria}
+${hasModel && q.modelAnswer ? `Model Answer: ${q.modelAnswer}` : ''}`).join('\n---\n');
+
+      const prompt = `You are a strict but fair examiner evaluating a student's answer sheet.
+
+STUDENT: ${stuName}
+EXAM: ${exam.title}
+
+MARKING RUBRIC:
+${rubricStr}
+
+TASK:
+1. Read the student's answer sheet (PDF attached).
+2. For each question in the rubric, evaluate the student's answer.
+3. Return ONLY a valid JSON array. No markdown, no explanation.
+
+JSON structure:
+[
+  {
+    "id":"Q1",
+    "scored":3,
+    "max":5,
+    "studentAnswer":"Brief 1-2 sentence summary of what the student wrote",
+    "foundKw":["keyword1","keyword2"],
+    "missedKw":["keyword3"],
+    "feedback":"Specific constructive feedback on this answer",
+    "improve":"One concrete tip to improve this answer"
+  }
+]
+
+Rules:
+- Be fair but accurate. Award marks only if the answer demonstrates understanding.
+- foundKw: keywords from the rubric that appear in the student's answer
+- missedKw: rubric keywords absent from the student's answer
+- studentAnswer: summarise what the student actually wrote
+- feedback: be constructive and specific
+- improve: give one actionable improvement tip
+- Return ONLY the JSON array`;
+
+      const data = await callGemini({
+        contents: [{
+          parts: [
+            { inline_data: { mime_type: 'application/pdf', data: b64ans } },
+            { text: prompt }
+          ]
+        }],
+        generationConfig: { temperature: 0.2, maxOutputTokens: 8192 }
+      });
+
+      let text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      text = text.replace(/```json|```/g, '').trim();
+      const s = text.indexOf('['), e2 = text.lastIndexOf(']');
+      if (s === -1 || e2 === -1) throw new Error('No JSON array in Gemini response');
+      return JSON.parse(text.slice(s, e2 + 1));
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────────
+    // RENDER RESULTS
+    // ─────────────────────────────────────────────────────────────────────────────
+    function renderResults(results, stuName) {
+      const total = results.reduce((s, r) => s + (r.max || 0), 0);
+      const scored = results.reduce((s, r) => s + (r.scored || 0), 0);
+      const pct = total > 0 ? Math.round(scored / total * 100) : 0;
+      const grade = pct >= 90 ? ['A+', '#065f46', '#d1fae5'] : pct >= 75 ? ['A', '#065f46', '#d1fae5'] : pct >= 60 ? ['B', '#1d4ed8', '#dbeafe'] : pct >= 45 ? ['C', '#b45309', '#fef3c7'] : ['D', '#b91c1c', '#fee2e2'];
+      document.getElementById('sc-name').textContent = stuName + ' · ' + currentExam.title;
+      document.getElementById('sc-num').textContent = scored;
+      document.getElementById('sc-total-lbl').textContent = '/ ' + total;
+      document.getElementById('sc-pct').textContent = pct + '% overall';
+      const gp = document.getElementById('sc-grade');
+      gp.textContent = 'Grade ' + grade[0]; gp.style.background = grade[2]; gp.style.color = grade[1];
+      const missed = results.filter(r => r.missedKw && r.missedKw.length > 0);
+      const iw = document.getElementById('sc-improve-wrap');
+      if (missed.length) {
+        iw.style.display = 'block';
+        document.getElementById('sc-improve-list').innerHTML = missed.map(r =>
+          `<div>• <strong style="color:rgba(255,255,255,.75)">${r.id}:</strong> missed ${r.missedKw.join(', ')}</div>`).join('');
+      } else { iw.style.display = 'none' }
+      const list = document.getElementById('res-list');
+      list.innerHTML = '';
+      results.forEach(r => {
+        const q = currentExam.rubric.find(x => x.id === r.id) || {};
+        const pctQ = r.max > 0 ? Math.round(r.scored / r.max * 100) : 0;
+        const barColor = pctQ >= 75 ? 'var(--accent)' : pctQ >= 45 ? 'var(--warn)' : 'var(--danger)';
+        const hasModelAns = currentExam.hasModel && q.modelAnswer;
+        const card = document.createElement('div');
+        card.className = 'res-card';
+        card.innerHTML = `
+    <div class="res-card-header">
+      <div>
+        <div class="res-qid">${r.id}</div>
+        <div class="res-qtxt">${escHtml(q.q || r.id)}</div>
+      </div>
+      <div class="res-marks-badge">
+        <div class="res-big">${r.scored}</div>
+        <div class="res-of">/${r.max}</div>
+      </div>
+    </div>
+    <div class="res-card-body">
+      <div class="sbar"><div class="sbar-f" style="width:${pctQ}%;background:${barColor}"></div></div>
+      ${hasModelAns ? `
+      <div class="compare-grid">
+        <div class="compare-panel student"><div class="compare-panel-lbl">Your Answer</div><p>${escHtml(r.studentAnswer || 'No response detected')}</p></div>
+        <div class="compare-panel model"><div class="compare-panel-lbl">Model Answer</div><p>${escHtml(q.modelAnswer)}</p></div>
+      </div>`: `
+      <div class="fb-lbl">Your Answer Summary</div>
+      <div class="fb-txt">${escHtml(r.studentAnswer || 'No response detected')}</div>`}
+      <div class="fb-lbl">AI Feedback</div>
+      <div class="fb-txt">${escHtml(r.feedback || '')}</div>
+      ${(r.foundKw && r.foundKw.length) || (r.missedKw && r.missedKw.length) ? `
+      <div class="fb-lbl">Keywords</div>
+      <div style="margin-bottom:10px">
+        ${(r.foundKw || []).map(k => `<span class="kw-found">✓ ${escHtml(k)}</span>`).join('')}
+        ${(r.missedKw || []).map(k => `<span class="kw-miss">✗ ${escHtml(k)}</span>`).join('')}
+      </div>`: ''}
+      ${r.improve ? `<div class="improve-lbl">How to improve</div><div class="improve-area">${escHtml(r.improve)}</div>` : ''}
+    </div>`;
+        list.appendChild(card);
+      });
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────────
+    // HELPERS
+    // ─────────────────────────────────────────────────────────────────────────────
+    function toB64(file) {
+      return new Promise((res, rej) => {
+        const r = new FileReader();
+        r.onload = e => res(e.target.result.split(',')[1]);
+        r.onerror = () => rej(new Error('Failed to read file'));
+        r.readAsDataURL(file);
+      });
+    }
+    function showErr(id, msg) { const el = document.getElementById(id); el.textContent = msg; el.style.display = 'block' }
+  </script>
+</body>
+
+</html>
